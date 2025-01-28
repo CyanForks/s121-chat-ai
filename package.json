@@ -1,0 +1,22 @@
+{
+  "name": "koishi-plugin-chat-ai",
+  "description": "可以调用与 OpenAI 客户端兼容的 AI",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {},
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "devDependencies": {},
+  "peerDependencies": {
+    "koishi": "^4.18.3"
+  }
+}
