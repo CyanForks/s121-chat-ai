@@ -1,0 +1,19 @@
+commands:
+  chat-ai:
+    description: Chat with AI
+    options:
+      prompt: prompt
+  show-context:
+    description: Show context
+    messages:
+      context-is: "Context is:"
+  clear-context:
+    description: Clear context
+    messages:
+      context-cleared: Context is cleared
+  balance:
+    description: API balance
+    messages:
+      balance-is: "Balance is:"
+      balance-not-configured: "Balance is not configured"
+loading: share121's robot is responding...

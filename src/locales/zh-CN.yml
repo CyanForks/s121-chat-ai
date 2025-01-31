@@ -1,0 +1,19 @@
+commands:
+  chat-ai:
+    description: 与 AI 聊天
+    options:
+      prompt: 提示词
+  show-context:
+    description: 展示上下文
+    messages:
+      context-is: 上下文为：
+  clear-context:
+    description: 清理上下文
+    messages:
+      context-cleared: 上下文已清理
+  balance:
+    description: API 余额
+    messages:
+      balance-is: 余额为：
+      balance-not-configured: 未配置余额查询 URL 或 Token
+loading: share121 的机器人正在响应……
