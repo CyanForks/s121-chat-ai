@@ -1,6 +1,8 @@
 # koishi-plugin-chat-ai
 
-[![npm](https://img.shields.io/npm/v/koishi-plugin-chat-ai?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-chat-ai)
+[![npm](https://img.shields.io/npm/v/koishi-plugin-chat-ai)](https://www.npmjs.com/package/koishi-plugin-chat-ai)
+[![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/share121/chat-ai/master)
 
 - 支持 AI 流式输出（仅 Discord）
 - 高度自定义，完全自定义系统 prompt
