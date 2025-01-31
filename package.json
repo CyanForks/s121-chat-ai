@@ -9,8 +9,16 @@
     "lib",
     "dist"
   ],
+  "homepage": "https://github.com/share121/chat-ai",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/share121/chat-ai.git"
+  },
   "license": "MIT",
   "keywords": [
+    "ai",
+    "deepseek",
+    "openai",
     "chatbot",
     "koishi",
     "plugin"
@@ -33,5 +41,20 @@
     "highlight.js": "^11.11.1",
     "markdown-it": "^14.1.0",
     "openai": "^4.81.0"
+  },
+  "koishi": {
+    "description": {
+      "en": "Support AI streaming output, highly customizable, can call all AI compatible with OpenAI client, such as DeepSeek, ChatGPT, Tongyi Thousand Questions, Wenxin Yiyin, etc., with contextual memory, long-term memory",
+      "zh": "支持 AI 流式输出，高度自定义，可以调用与 OpenAI 客户端兼容所有的 AI，如 DeepSeek、ChatGPT、通义千问、文心一言等，拥有上下文记忆、长期记忆"
+    },
+    "service": {
+      "required": [
+        "database",
+        "console"
+      ],
+      "implements": [
+        "ai"
+      ]
+    }
   }
 }
