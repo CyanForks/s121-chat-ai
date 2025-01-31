@@ -1,5 +1,5 @@
 import { DataService } from "@koishijs/plugin-console";
-import { $, Context, h, Session } from "koishi";
+import { $, Context, h, Session, sleep } from "koishi";
 import OpenAI from "openai";
 import { Mutex } from "async-mutex";
 import { Stream } from "openai/streaming.mjs";
@@ -72,26 +72,26 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         return await session.send(res);
       }
       const stream = this.genStream(session);
-      let res = (await stream.next()).value;
-      if (!res) return;
-      const [id] = await session.send(res);
-      const mutex = new Mutex();
+      const [id] = await stream.next()
+        .then(res => res.value ? session.send(res.value) : void 0)
+      if (!id) return;
+      let msg = "";
+      let promise = Promise.resolve()
       for await (const chunk of stream) {
-        res += chunk;
-        if (!mutex.isLocked()) {
-          mutex.runExclusive(() =>
-            session.bot.editMessage(session.channelId, id, res as string)
-          );
-        }
+        msg += chunk;
+        promise = Promise.race([promise, Promise.reject()])
+          .then(() => session.bot.editMessage(session.channelId, id, msg))
+          .catch(() => promise);
       }
-      await mutex.waitForUnlock();
-      for (let i = 1; i < 10; i++) {
+      await promise;
+      let tries = 10;
+      while (tries--) {
         try {
-          await session.bot.editMessage(session.channelId, id, res);
+          await session.bot.editMessage(session.channelId, id, msg);
           break;
         } catch (e) {
           console.error(e);
-          await sleep(500 * i);
+          await sleep(100 * (10 - tries));
         }
       }
     });
@@ -157,24 +157,23 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         },
       });
       const stream = this.genStream(session);
-      let res = "";
-      const mutex = new Mutex();
+      let msg = "";
+      let promise = Promise.resolve()
       for await (const chunk of stream) {
-        res += chunk;
-        if (!mutex.isLocked()) {
-          mutex.runExclusive(() =>
-            session.bot.editMessage(session.channelId, id, res)
-          );
-        }
+        msg += chunk;
+        promise = Promise.race([promise, Promise.reject()])
+          .then(() => session.bot.editMessage(session.channelId, id, msg))
+          .catch(() => promise);
       }
-      await mutex.waitForUnlock();
-      for (let i = 1; i < 10; i++) {
+      await promise;
+      let tries = 10;
+      while (tries--) {
         try {
-          await session.bot.editMessage(session.channelId, id, res);
+          await session.bot.editMessage(session.channelId, id, msg);
           break;
         } catch (e) {
           console.error(e);
-          await sleep(500 * i);
+          await sleep(100 * (10 - tries));
         }
       }
     });
@@ -187,10 +186,10 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
   }
 
   async genAsync(session: Session) {
-    const stream = this.genStream(session);
-    let res = "";
-    for await (const chunk of stream) res += chunk;
-    return res;
+    const chunks = await Array.fromAsync(
+      this.genStream(session)
+    );
+    return chunks.join('');
   }
 
   get() {
@@ -472,11 +471,7 @@ term
 - [ ] Contact the media
 `.split("\n");
   for (const line of mockResponse) {
-    yield line + "\n";
+    yield `${line}\n`;
     await sleep(100);
   }
-}
-
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
