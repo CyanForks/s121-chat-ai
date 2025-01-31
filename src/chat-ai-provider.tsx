@@ -1,5 +1,5 @@
 import { DataService } from "@koishijs/plugin-console";
-import { $, Context, h, Session } from "koishi";
+import { $, Context, h, Session, sleep } from "koishi";
 import OpenAI from "openai";
 import { Mutex } from "async-mutex";
 import { Stream } from "openai/streaming.mjs";
@@ -475,8 +475,4 @@ term
     yield line + "\n";
     await sleep(100);
   }
-}
-
-export function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
