@@ -7,29 +7,29 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import type { PromptItem } from "../src/chat-ai-provider";
-import markdownit from "markdown-it";
-import hljs from "highlight.js";
+import { fromAsyncCodeToHtml } from "@shikijs/markdown-it/async";
+import MarkdownItAsync from "markdown-it-async";
+import { codeToHtml } from "shiki";
 import "./markdown.css";
+import { asyncComputed } from "@vueuse/core";
 
 const props = defineProps<PromptItem>();
-const md = markdownit({
+
+const md = MarkdownItAsync({
   linkify: true,
   breaks: true,
-  highlight: function (str, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return hljs.highlight(str, { language: lang }).value;
-      } catch (__) {}
-    }
-    return "";
-  },
-});
+}).use(
+  fromAsyncCodeToHtml(codeToHtml, {
+    themes: {
+      light: "vitesse-light",
+      dark: "vitesse-dark",
+    },
+  })
+);
 
 const title = computed(() => {
   if (!props.name) return props.role;
   return `${props.role}/${props.name}`;
 });
-const content = computed(() => {
-  return md.render(props.content);
-});
+const content = asyncComputed(() => md.renderAsync(props.content));
 </script>

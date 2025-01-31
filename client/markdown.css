@@ -15,7 +15,7 @@
     Liberation Mono, monospace;
   --fgColor-accent: Highlight;
 }
-:root.dark {
+html.dark {
   /* dark */
   color-scheme: dark;
   --focus-outlineColor: #1f6feb;
@@ -69,7 +69,7 @@
   --color-prettylights-syntax-meta-diff-range: #d2a8ff;
   --color-prettylights-syntax-sublimelinter-gutter-mark: #3d444d;
 }
-:root {
+html {
   /* light */
   color-scheme: light;
   --focus-outlineColor: #0969da;
@@ -124,196 +124,14 @@
   --color-prettylights-syntax-sublimelinter-gutter-mark: #818b98;
 }
 
-pre code.hljs {
-  display: block;
-  overflow-x: auto;
-  padding: 1em;
-}
-code.hljs {
-  padding: 3px 5px;
-}
-.hljs {
-  color: #24292e;
-  background: #ffffff;
-}
-.hljs-doctag,
-.hljs-keyword,
-.hljs-meta .hljs-keyword,
-.hljs-template-tag,
-.hljs-template-variable,
-.hljs-type,
-.hljs-variable.language_ {
-  /* prettylights-syntax-keyword */
-  color: #d73a49;
-}
-.hljs-title,
-.hljs-title.class_,
-.hljs-title.class_.inherited__,
-.hljs-title.function_ {
-  /* prettylights-syntax-entity */
-  color: #6f42c1;
-}
-.hljs-attr,
-.hljs-attribute,
-.hljs-literal,
-.hljs-meta,
-.hljs-number,
-.hljs-operator,
-.hljs-variable,
-.hljs-selector-attr,
-.hljs-selector-class,
-.hljs-selector-id {
-  /* prettylights-syntax-constant */
-  color: #005cc5;
-}
-.hljs-regexp,
-.hljs-string,
-.hljs-meta .hljs-string {
-  /* prettylights-syntax-string */
-  color: #032f62;
-}
-.hljs-built_in,
-.hljs-symbol {
-  /* prettylights-syntax-variable */
-  color: #e36209;
-}
-.hljs-comment,
-.hljs-code,
-.hljs-formula {
-  /* prettylights-syntax-comment */
-  color: #6a737d;
-}
-.hljs-name,
-.hljs-quote,
-.hljs-selector-tag,
-.hljs-selector-pseudo {
-  /* prettylights-syntax-entity-tag */
-  color: #22863a;
-}
-.hljs-subst {
-  /* prettylights-syntax-storage-modifier-import */
-  color: #24292e;
-}
-.hljs-section {
-  /* prettylights-syntax-markup-heading */
-  color: #005cc5;
-  font-weight: bold;
-}
-.hljs-bullet {
-  /* prettylights-syntax-markup-list */
-  color: #735c0f;
-}
-.hljs-emphasis {
-  /* prettylights-syntax-markup-italic */
-  color: #24292e;
-  font-style: italic;
-}
-.hljs-strong {
-  /* prettylights-syntax-markup-bold */
-  color: #24292e;
-  font-weight: bold;
-}
-.hljs-addition {
-  /* prettylights-syntax-markup-inserted */
-  color: #22863a;
-  background-color: #f0fff4;
-}
-.hljs-deletion {
-  /* prettylights-syntax-markup-deleted */
-  color: #b31d28;
-  background-color: #ffeef0;
-}
-
-:root.dark .hljs {
-  color: #c9d1d9;
-  background: #0d1117;
-}
-:root.dark .hljs-doctag,
-:root.dark .hljs-keyword,
-:root.dark .hljs-meta .hljs-keyword,
-:root.dark .hljs-template-tag,
-:root.dark .hljs-template-variable,
-:root.dark .hljs-type,
-:root.dark .hljs-variable.language_ {
-  /* prettylights-syntax-keyword */
-  color: #ff7b72;
-}
-:root.dark .hljs-title,
-:root.dark .hljs-title.class_,
-:root.dark .hljs-title.class_.inherited__,
-:root.dark .hljs-title.function_ {
-  /* prettylights-syntax-entity */
-  color: #d2a8ff;
-}
-:root.dark .hljs-attr,
-:root.dark .hljs-attribute,
-:root.dark .hljs-literal,
-:root.dark .hljs-meta,
-:root.dark .hljs-number,
-:root.dark .hljs-operator,
-:root.dark .hljs-variable,
-:root.dark .hljs-selector-attr,
-:root.dark .hljs-selector-class,
-:root.dark .hljs-selector-id {
-  /* prettylights-syntax-constant */
-  color: #79c0ff;
-}
-:root.dark .hljs-regexp,
-:root.dark .hljs-string,
-:root.dark .hljs-meta .hljs-string {
-  /* prettylights-syntax-string */
-  color: #a5d6ff;
-}
-:root.dark .hljs-built_in,
-:root.dark .hljs-symbol {
-  /* prettylights-syntax-variable */
-  color: #ffa657;
-}
-:root.dark .hljs-comment,
-:root.dark .hljs-code,
-:root.dark .hljs-formula {
-  /* prettylights-syntax-comment */
-  color: #8b949e;
-}
-:root.dark .hljs-name,
-:root.dark .hljs-quote,
-:root.dark .hljs-selector-tag,
-:root.dark .hljs-selector-pseudo {
-  /* prettylights-syntax-entity-tag */
-  color: #7ee787;
-}
-:root.dark .hljs-subst {
-  /* prettylights-syntax-storage-modifier-import */
-  color: #c9d1d9;
-}
-:root.dark .hljs-section {
-  /* prettylights-syntax-markup-heading */
-  color: #1f6feb;
-  font-weight: bold;
-}
-:root.dark .hljs-bullet {
-  /* prettylights-syntax-markup-list */
-  color: #f2cc60;
-}
-:root.dark .hljs-emphasis {
-  /* prettylights-syntax-markup-italic */
-  color: #c9d1d9;
-  font-style: italic;
-}
-:root.dark .hljs-strong {
-  /* prettylights-syntax-markup-bold */
-  color: #c9d1d9;
-  font-weight: bold;
-}
-:root.dark .hljs-addition {
-  /* prettylights-syntax-markup-inserted */
-  color: #aff5b4;
-  background-color: #033a16;
-}
-:root.dark .hljs-deletion {
-  /* prettylights-syntax-markup-deleted */
-  color: #ffdcd7;
-  background-color: #67060c;
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  /* Optional, if you also want font styles */
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
 .markdown-body {
