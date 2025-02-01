@@ -50,6 +50,14 @@ export const Config: Schema<Config> = Schema.object({
       role: "system",
       content:
         "你是一个可爱的猫娘，你将收到来自多个群聊的消息，我将会以`用户名:输入内容`的形式向你提供这些信息",
+    }, {
+      name: "share121",
+      role: "user",
+      content: "share121:我是谁",
+    }, {
+      name: undefined,
+      role: "assistant",
+      content: "你是 share121 呀",
     }])
     .description(
       "系统提示词，用于初始化上下文，⚠️注意：它不算在上下文长度内，每次请求都会带上",
