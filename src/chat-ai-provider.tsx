@@ -4,7 +4,6 @@ import OpenAI from "openai";
 import { Mutex } from "async-mutex";
 import { Stream } from "openai/streaming.mjs";
 import {} from "@koishijs/plugin-adapter-discord";
-import axios from "axios";
 
 export interface PromptItem {
   role: "system" | "user" | "assistant";
@@ -116,19 +115,18 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       if (!this.config.balanceUrl || !this.config.balanceToken) {
         return session.text(".balance-not-configured");
       }
-      const balance = await axios
-        .get(this.config.balanceUrl, {
-          method: "get",
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${this.config.balanceToken}`,
-          },
-        })
-        .then((r) => JSON.stringify(r.data, null, 2));
+      const balance = await ctx.http.get(this.config.balanceUrl, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${this.config.balanceToken}`,
+        },
+      });
       return (
         <>
           {session.text(".balance-is")}
-          <code-block language="json">{balance}</code-block>
+          <code-block language="json">
+            {JSON.stringify(balance, null, 2)}
+          </code-block>
         </>
       );
     });
