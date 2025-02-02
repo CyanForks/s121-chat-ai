@@ -17,6 +17,7 @@ export interface AIConfig {
   baseURL: string;
   apiKey: string;
   model: string;
+  canWakeUpByName: boolean;
   maxContextSize?: number;
   fitContextSize?: number;
   systemPrompt: PromptItem[];
@@ -161,7 +162,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
     });
 
     ctx.on("message", async (session) => {
-      if (!this.isCallMyself(session)) return;
+      if (!(await this.isCallMyself(session))) return;
       if (!session.discord) {
         const res = await this.genAsync(session);
         return await session.send(res);
@@ -207,11 +208,21 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
     });
   }
 
-  isCallMyself(session: Session) {
+  async isCallMyself(session: Session) {
     if (session.userId === session.selfId) return false;
     if (!session.guildId) return true;
     const ele = h.select(session.elements, "at");
-    return ele.some((e) => e.attrs.id === session.selfId);
+    const isAt = ele.some((e) => e.attrs.id === session.selfId);
+    if (isAt) return true;
+    const res = [...this.config.entries()].find(
+      ([name, config]) =>
+        config.canWakeUpByName && session.content.includes(name)
+    );
+    if (res) {
+      await this.setAiName(session, res[0]);
+      return true;
+    }
+    return false;
   }
 
   async genAsync(session: Session) {
@@ -521,7 +532,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       this.pushChatHistory(session, {
         role: "assistant",
         content: fullResponse,
-        name: config.model,
+        name: config.name,
       });
       await this.setChatCtxSize(
         session,

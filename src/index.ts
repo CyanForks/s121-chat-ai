@@ -36,6 +36,9 @@ export const Config: Schema<Config> = Schema.object({
     balanceToken: Schema.string().role("secret").description(
       "查询余额的 token",
     ),
+    canWakeUpByName: Schema.boolean()
+      .default(false)
+      .description("是否可以通过智能体的名字唤醒"),
     maxContextSize: Schema.number()
       .min(0).default(20)
       .description("上下文最大长度，一问一答算一个上下文"),
