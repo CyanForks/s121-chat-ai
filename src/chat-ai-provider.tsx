@@ -220,19 +220,20 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
 
   async isCallMyself(session: Session) {
     if (session.userId === session.selfId) return false;
-    if (!session.guildId) return true;
-    const ele = h.select(session.elements, "at");
-    const isAt = ele.some((e) => e.attrs.id === session.selfId);
-    if (isAt) return true;
-    const res = [...this.config.entries()].filter(
-      ([name, config]) =>
-        config.canWakeUpByName && session.content.includes(name)
-    );
-    if (res.length === 0) return false;
     const aiName = await this.getAiName(session);
-    const needChange = res.every(([name]) => name !== aiName);
+    const accessableAi = [...this.config.entries()].filter(
+      ([name, config]) =>
+        config.canWakeUpByName &&
+        session.content.toLocaleLowerCase().includes(name.toLocaleLowerCase())
+    );
+    if (accessableAi.length === 0) {
+      if (!session.guildId) return true;
+      const ele = h.select(session.elements, "at");
+      return ele.some((e) => e.attrs.id === session.selfId);
+    }
+    const needChange = accessableAi.every(([name]) => name !== aiName);
     try {
-      if (needChange) await this.setAiName(session, res[0][0]);
+      if (needChange) await this.setAiName(session, accessableAi[0][0]);
       return true;
     } catch (e) {
       console.error(e);
