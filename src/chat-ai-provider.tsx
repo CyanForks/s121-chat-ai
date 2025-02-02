@@ -18,6 +18,7 @@ export interface AIConfig {
   apiKey: string;
   model: string;
   canWakeUpByName: boolean;
+  onlyNsfw: boolean;
   maxContextSize?: number;
   fitContextSize?: number;
   systemPrompt: PromptItem[];
@@ -121,7 +122,12 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
     });
 
     ctx.command("chat-ai/list-agents").action(async ({ session }) => {
-      const agents = [...this.config.keys()].map((e) => `- ${e}`).join("\n");
+      const agents = [...this.config.entries()]
+        .map(([k, v]) => {
+          if (v.onlyNsfw) return `- ${k} (NSFW)`;
+          return `- ${k}`;
+        })
+        .join("\n");
       session.send(`${session.text(".agents-are")}\n${agents}`);
     });
 
@@ -129,8 +135,12 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       .command("chat-ai/use-agent <model:text>")
       .action(async ({ session }, model) => {
         if (this.config.has(model)) {
-          await this.setAiName(session, model);
-          return session.text(".agent-set", [model]);
+          try {
+            await this.setAiName(session, model);
+            return session.text(".agent-set", [model]);
+          } catch (e) {
+            return e;
+          }
         } else {
           return session.text(".agent-not-found", [model]);
         }
@@ -214,13 +224,18 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
     const ele = h.select(session.elements, "at");
     const isAt = ele.some((e) => e.attrs.id === session.selfId);
     if (isAt) return true;
-    const res = [...this.config.entries()].find(
+    const res = [...this.config.entries()].filter(
       ([name, config]) =>
         config.canWakeUpByName && session.content.includes(name)
     );
-    if (res) {
-      await this.setAiName(session, res[0]);
+    if (res.length === 0) return false;
+    const aiName = await this.getAiName(session);
+    const needChange = res.every(([name]) => name !== aiName);
+    try {
+      if (needChange) await this.setAiName(session, res[0][0]);
       return true;
+    } catch (e) {
+      console.error(e);
     }
     return false;
   }
@@ -430,6 +445,11 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
   async setAiName(session: Session, aiName: string) {
     const release = await this.mutexDB.acquire();
     try {
+      if (session.guildId && this.config.get(aiName).onlyNsfw) {
+        if (!session.discord) throw "NSFW 检查只在 Discord 中可用";
+        const channel = await session.discord.getChannel(session.channelId);
+        if (!channel?.nsfw) throw "无法在这个频道上使用 NSFW AI";
+      }
       this.#aiName.set(session.channelId, aiName);
       let [data] = await this.ctx.database.get(
         "chatAiData",

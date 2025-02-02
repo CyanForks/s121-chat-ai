@@ -16,7 +16,7 @@ export const Config: Schema<Config> = Schema.object({
       name: Schema.string()
         .required()
         .pattern(/\S/)
-        .description("智能体的名字，可以通过 `/use` 指令来切换"),
+        .description("智能体的名字，可以通过 `/use-agent` 指令来切换"),
       baseURL: Schema.string()
         .role("link")
         .required()
@@ -37,6 +37,9 @@ export const Config: Schema<Config> = Schema.object({
       canWakeUpByName: Schema.boolean()
         .default(false)
         .description("是否可以通过智能体的名字唤醒"),
+      onlyNsfw: Schema.boolean()
+        .default(false)
+        .description("是否仅 NSFW 频道可用"),
       maxContextSize: Schema.number()
         .min(0)
         .default(20)
@@ -142,6 +145,7 @@ export const Config: Schema<Config> = Schema.object({
       model: "deepseek-chat",
       baseURL: "https://api.deepseek.com",
       maxContextSize: 10,
+      onlyNsfw: false,
       fitContextSize: 5,
       maxTokens: 100,
       balanceUrl: "https://api.deepseek.com/user/balance",
@@ -177,6 +181,7 @@ export const Config: Schema<Config> = Schema.object({
       apiKey: undefined,
       model: "deepseek-chat",
       baseURL: "https://api.deepseek.com",
+      onlyNsfw: false,
       maxContextSize: 10,
       fitContextSize: 5,
       maxTokens: 100,
