@@ -12,8 +12,17 @@ commands:
     messages:
       context-cleared: 上下文已清理
   balance:
-    description: API 余额
+    description: 查询 API 余额
     messages:
-      balance-is: 余额为：
-      balance-not-configured: 未配置余额查询 URL 或 Token
+      balance-is: 智能体 {0} 的余额为：
+      balance-not-configured: 未配置智能体 {0} 的余额查询 URL 或 Token
+  list-agents:
+    description: 列出所有智能体
+    messages:
+      agents-are: 可用的智能体有：
+  use-agent:
+    description: 设置当前频道使用的智能体
+    messages:
+      agent-set: 当前频道使用的智能体已设置为：{0}
+      agent-not-found: 智能体 {0} 不存在
 loading: share121 的机器人正在响应……

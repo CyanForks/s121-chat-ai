@@ -1,9 +1,10 @@
 import { DataService } from "@koishijs/plugin-console";
-import { $, Context, h, Session, sleep } from "koishi";
+import { $, Context, Element, h, Session, sleep } from "koishi";
 import OpenAI from "openai";
 import { Mutex } from "async-mutex";
 import { Stream } from "openai/streaming.mjs";
 import {} from "@koishijs/plugin-adapter-discord";
+import { Config } from ".";
 
 export interface PromptItem {
   role: "system" | "user" | "assistant";
@@ -12,6 +13,7 @@ export interface PromptItem {
 }
 
 export interface AIConfig {
+  name: string;
   baseURL: string;
   apiKey: string;
   model: string;
@@ -41,6 +43,7 @@ export interface ChatAiData {
   guildName: string;
   chatHistory: PromptItem[];
   chatContextSize: number;
+  aiName: string;
 }
 
 declare module "@koishijs/plugin-console" {
@@ -52,18 +55,22 @@ declare module "@koishijs/plugin-console" {
 }
 
 export class ChatAIProvider extends DataService<ChatAiData[]> {
-  client: OpenAI;
+  client = new Map<string, OpenAI>();
   mutexAi = new Mutex();
   mutexDB = new Mutex();
-  declare config: AIConfig;
+  config = new Map<string, AIConfig>();
+  defaultAi: string;
   #chatHistory = new Map<string, PromptItem[]>();
   #chatContextSize = new Map<string, number>();
+  #aiName = new Map<string, string>();
 
-  constructor(ctx: Context, config: AIConfig) {
+  constructor(ctx: Context, config: Config) {
     super(ctx, "chatai");
-    this.client = new OpenAI(config);
-    this.config = config;
-
+    this.defaultAi = config.defaultAi;
+    for (const ai of config.aiList) {
+      this.client.set(ai.name, new OpenAI(ai));
+      this.config.set(ai.name, ai);
+    }
     ctx.command("chat-ai <prompt:text>").action(async ({ session }, prompt) => {
       session.content = prompt;
       if (!session.discord) {
@@ -112,24 +119,45 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       return session.text(".context-cleared");
     });
 
-    ctx.command("chat-ai/balance").action(async ({ session }) => {
-      if (!this.config.balanceUrl || !this.config.balanceToken) {
-        return session.text(".balance-not-configured");
-      }
-      const balance = await ctx.http.get(this.config.balanceUrl, {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${this.config.balanceToken}`,
-        },
+    ctx.command("chat-ai/list-agents").action(async ({ session }) => {
+      const agents = [...this.config.keys()].map((e) => `- ${e}`).join("\n");
+      session.send(`${session.text(".agents-are")}\n${agents}`);
+    });
+
+    ctx
+      .command("chat-ai/use-agent <model:text>")
+      .action(async ({ session }, model) => {
+        if (this.config.has(model)) {
+          await this.setAiName(session, model);
+          return session.text(".agent-set", [model]);
+        } else {
+          return session.text(".agent-not-found", [model]);
+        }
       });
-      return (
-        <>
-          {session.text(".balance-is")}
-          <code-block language="json">
-            {JSON.stringify(balance, null, 2)}
-          </code-block>
-        </>
+
+    ctx.command("chat-ai/balance").action(async ({ session }) => {
+      const p = [...this.config.entries()].map<Promise<Element>>(
+        async ([name, config]) => {
+          if (!config.balanceUrl || !config.balanceToken) {
+            return <p>{session.text(".balance-not-configured", [name])}</p>;
+          }
+          const balance = await ctx.http.get(config.balanceUrl, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${config.balanceToken}`,
+            },
+          });
+          return (
+            <p>
+              {session.text(".balance-is", [name])}
+              <code-block language="json">
+                {JSON.stringify(balance, null, 2)}
+              </code-block>
+            </p>
+          );
+        }
       );
+      return (await Promise.all(p)).join("\n");
     });
 
     ctx.on("message", async (session) => {
@@ -221,6 +249,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           guildName,
           chatContextSize: 0,
           chatHistory: [],
+          aiName: this.defaultAi,
         });
       }
       return data.chatHistory;
@@ -250,6 +279,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           guildName,
           chatContextSize: 0,
           chatHistory,
+          aiName: this.defaultAi,
         });
         return data.chatHistory;
       }
@@ -311,6 +341,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           guildName,
           chatContextSize: 0,
           chatHistory: [],
+          aiName: this.defaultAi,
         });
       }
       return data.chatContextSize;
@@ -340,6 +371,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           guildName,
           chatContextSize,
           chatHistory: [],
+          aiName: this.defaultAi,
         });
         return data.chatContextSize;
       }
@@ -348,6 +380,72 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       });
       this.refresh();
       return chatContextSize;
+    } finally {
+      release();
+    }
+  }
+
+  async getAiName(session: Session) {
+    const release = await this.mutexDB.acquire();
+    try {
+      if (this.#aiName.has(session.channelId))
+        return this.#aiName.get(session.channelId);
+      let [data] = await this.ctx.database.get(
+        "chatAiData",
+        session.channelId,
+        ["aiName"]
+      );
+      if (!data) {
+        const [channelName, guildName] = await Promise.all([
+          this.getChannelName(session),
+          this.getGuildName(session),
+        ]);
+        data = await this.ctx.database.create("chatAiData", {
+          channelId: session.channelId,
+          channelName,
+          guildId: session.guildId ?? "",
+          guildName,
+          chatContextSize: 0,
+          chatHistory: [],
+          aiName: this.defaultAi,
+        });
+      }
+      return data.aiName ?? this.defaultAi;
+    } finally {
+      release();
+    }
+  }
+
+  async setAiName(session: Session, aiName: string) {
+    const release = await this.mutexDB.acquire();
+    try {
+      this.#aiName.set(session.channelId, aiName);
+      let [data] = await this.ctx.database.get(
+        "chatAiData",
+        session.channelId,
+        ["aiName"]
+      );
+      if (!data) {
+        const [channelName, guildName] = await Promise.all([
+          this.getChannelName(session),
+          this.getGuildName(session),
+        ]);
+        data ??= await this.ctx.database.create("chatAiData", {
+          channelId: session.channelId,
+          channelName,
+          guildId: session.guildId ?? "",
+          guildName,
+          chatContextSize: 0,
+          chatHistory: [],
+          aiName,
+        });
+        return data.aiName;
+      }
+      await this.ctx.database.set("chatAiData", session.channelId, {
+        aiName,
+      });
+      this.refresh();
+      return aiName;
     } finally {
       release();
     }
@@ -365,16 +463,15 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
 
   async *genStream(session: Session) {
     const release = await this.mutexAi.acquire();
+    const aiName = await this.getAiName(session);
+    const config = this.config.get(aiName);
     try {
-      if (session.content.length > this.config.maxPromptLength) {
-        yield `提示词太长了，请缩短到 ${this.config.maxPromptLength} 个字符以内`;
+      if (session.content.length > config.maxPromptLength) {
+        yield `提示词太长了，请缩短到 ${config.maxPromptLength} 个字符以内`;
         return;
       }
-      if (
-        (await this.getChatCtxSize(session)) >
-        this.config.maxContextSize * 2
-      ) {
-        await this.setChatCtxSize(session, this.config.fitContextSize * 2);
+      if ((await this.getChatCtxSize(session)) > config.maxContextSize * 2) {
+        await this.setChatCtxSize(session, config.fitContextSize * 2);
       }
       let username = session.event.user.nick ?? session.event.user.name;
       if (!username) {
@@ -393,12 +490,10 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       let stream:
         | Stream<OpenAI.Chat.Completions.ChatCompletionChunk>
         | AsyncIterable<string>;
-      if (!this.config.isMock) {
-        stream = await this.client.chat.completions.create({
-          ...this.config,
-          messages: this.config.systemPrompt.concat(
-            await this.getContext(session)
-          ),
+      if (!config.isMock) {
+        stream = await this.client.get(aiName).chat.completions.create({
+          ...config,
+          messages: config.systemPrompt.concat(await this.getContext(session)),
           stream: true,
         });
       } else {
@@ -408,7 +503,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       let t = "";
       for await (const chunk of stream) {
         let token: string;
-        if (!this.config.isMock) {
+        if (!config.isMock) {
           token =
             (chunk as OpenAI.Chat.Completions.ChatCompletionChunk).choices[0]
               ?.delta?.content || "";
@@ -426,7 +521,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       this.pushChatHistory(session, {
         role: "assistant",
         content: fullResponse,
-        name: this.config.model,
+        name: config.model,
       });
       await this.setChatCtxSize(
         session,

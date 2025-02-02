@@ -12,8 +12,17 @@ commands:
     messages:
       context-cleared: Context is cleared
   balance:
-    description: API balance
+    description: Query API balance
     messages:
-      balance-is: "Balance is:"
-      balance-not-configured: "Balance is not configured"
+      balance-is: "The balance of the agent {0} is:"
+      balance-not-configured: "The balance query URL or Token of agent {0} is not configured"
+  list-agents:
+    description: List all agents
+    messages:
+      agents-are: "Available agents are:"
+  use-agent:
+    description: Set the agent used by the current channel
+    messages:
+      agent-set: "The agent used by the current channel has been set to: {0}"
+      agent-not-found: Agents do not exist {0}
 loading: share121's robot is responding...
