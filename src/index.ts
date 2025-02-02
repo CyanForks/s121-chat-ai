@@ -38,7 +38,7 @@ export const Config: Schema<Config> = Schema.object({
       Schema.const("system")
         .description("系统消息（可以向 AI 提要求）"),
       Schema.const("user")
-        .description("用户消息（与 AI 回答配套使用，给 AI 一些例子）"),
+        .description("用户提问（与 AI 回答配套使用，给 AI 一些例子）"),
       Schema.const("assistant")
         .description("AI 回答（与用户消息配套使用）"),
     ]).role("radio").required().description("角色"),

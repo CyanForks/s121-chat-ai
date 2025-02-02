@@ -68,7 +68,8 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       session.content = prompt;
       if (!session.discord) {
         const res = await this.genAsync(session);
-        return await session.send(res);
+        await session.send(res);
+        return;
       }
       const stream = this.genStream(session);
       let res = (await stream.next()).value;
@@ -180,6 +181,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
 
   isCallMyself(session: Session) {
     if (session.userId === session.selfId) return false;
+    if (!session.guildId) return true;
     const ele = h.select(session.elements, "at");
     return ele.some((e) => e.attrs.id === session.selfId);
   }
@@ -208,15 +210,15 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         ["chatHistory"]
       );
       if (!data) {
-        const [channel, guild] = await Promise.all([
-          session.bot.getChannel(session.channelId),
-          session.bot.getGuild(session.guildId),
+        const [channelName, guildName] = await Promise.all([
+          this.getChannelName(session),
+          this.getGuildName(session),
         ]);
         data = await this.ctx.database.create("chatAiData", {
           channelId: session.channelId,
-          channelName: channel.name ?? session.channelId,
-          guildId: session.guildId,
-          guildName: guild.name ?? session.guildId,
+          channelName,
+          guildId: session.guildId ?? "",
+          guildName,
           chatContextSize: 0,
           chatHistory: [],
         });
@@ -237,15 +239,15 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         ["chatHistory"]
       );
       if (!data) {
-        const [channel, guild] = await Promise.all([
-          session.bot.getChannel(session.channelId),
-          session.bot.getGuild(session.guildId),
+        const [channelName, guildName] = await Promise.all([
+          this.getChannelName(session),
+          this.getGuildName(session),
         ]);
         data = await this.ctx.database.create("chatAiData", {
           channelId: session.channelId,
-          channelName: channel.name ?? session.channelId,
-          guildId: session.guildId,
-          guildName: guild.name ?? session.guildId,
+          channelName,
+          guildId: session.guildId ?? "",
+          guildName,
           chatContextSize: 0,
           chatHistory,
         });
@@ -259,6 +261,27 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
     } finally {
       release();
     }
+  }
+
+  async getChannelName(session: Session) {
+    if (session.event.channel.name) return session.event.channel.name;
+    if (!session.guildId) {
+      if (session.event.user.name) return session.event.user.name;
+      const channel = await session.bot.getChannel(session.channelId);
+      if (channel?.name) return channel.name;
+      const user = await session.bot?.getUser(session.event.user.id);
+      return user?.name ?? session.channelId;
+    }
+    const channel = await session.bot.getChannel(session.channelId);
+    return channel?.name ?? session.channelId;
+  }
+
+  async getGuildName(session: Session) {
+    if (session.guildId) {
+      const guild = await session.bot.getGuild(session.guildId);
+      return guild.name ?? session.guildId;
+    }
+    return "私聊";
   }
 
   async pushChatHistory(session: Session, ...chatHistory: PromptItem[]) {
@@ -277,15 +300,15 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         ["chatContextSize"]
       );
       if (!data) {
-        const [channel, guild] = await Promise.all([
-          session.bot.getChannel(session.channelId),
-          session.bot.getGuild(session.guildId),
+        const [channelName, guildName] = await Promise.all([
+          this.getChannelName(session),
+          this.getGuildName(session),
         ]);
         data = await this.ctx.database.create("chatAiData", {
           channelId: session.channelId,
-          channelName: channel.name ?? session.channelId,
-          guildId: session.guildId,
-          guildName: guild.name ?? session.guildId,
+          channelName,
+          guildId: session.guildId ?? "",
+          guildName,
           chatContextSize: 0,
           chatHistory: [],
         });
@@ -306,15 +329,15 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         ["chatContextSize"]
       );
       if (!data) {
-        const [channel, guild] = await Promise.all([
-          session.bot.getChannel(session.channelId),
-          session.bot.getGuild(session.guildId),
+        const [channelName, guildName] = await Promise.all([
+          this.getChannelName(session),
+          this.getGuildName(session),
         ]);
         data ??= await this.ctx.database.create("chatAiData", {
           channelId: session.channelId,
-          channelName: channel.name ?? session.channelId,
-          guildId: session.guildId,
-          guildName: guild.name ?? session.guildId,
+          channelName,
+          guildId: session.guildId ?? "",
+          guildName,
           chatContextSize,
           chatHistory: [],
         });
@@ -353,8 +376,11 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       ) {
         await this.setChatCtxSize(session, this.config.fitContextSize * 2);
       }
-      const user = await session.bot.getUser(session.userId);
-      const username = user.nick ?? user.name ?? user.id;
+      let username = session.event.user.nick ?? session.event.user.name;
+      if (!username) {
+        const user = await session.bot?.getUser(session.userId);
+        username = user?.nick ?? user?.name ?? session.userId;
+      }
       await this.pushChatHistory(session, {
         role: "user",
         content: `${username}:${session.content}`,

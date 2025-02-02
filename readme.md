@@ -13,6 +13,7 @@
 - 多种触发方式
   - `/chat-ai` 触发
   - `@机器人` 触发
+  - 私聊不用 `@` 触发
 - 国际化支持（仅中文和英文）
 - ……
 
@@ -34,7 +35,6 @@ https://forum.koishi.xyz/t/topic/10286
 - [markdown-it-async](https://github.com/antfu/markdown-it-async) 提供 Markdown 渲染
 - [Shikijs](https://github.com/shikijs/shiki) 提供代码块渲染
 - [VueUse](https://github.com/vueuse/vueuse) 提供 Vue3 的工具函数
-- [Axios](https://github.com/axios/axios) 简化网络请求
 - [openai](https://github.com/openai/openai-node) 提供与 OpenAI 客户端兼容的 API
 - [github-markdown-css](https://github.com/sindresorhus/github-markdown-css) 提供 GitHub 风格的 Markdown 样式
 - ……
