@@ -20,6 +20,7 @@ commands:
     description: List all agents
     messages:
       agents-are: "Available agents are:"
+      select: Select {0}
   use-agent:
     description: Set the agent used by the current channel
     messages:

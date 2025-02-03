@@ -86,16 +86,49 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         "aiName",
         this.defaultAi
       );
-      const agents = ctx.config.aiList
-        .map(({ name, onlyNsfw }) => {
-          const tag = [
-            onlyNsfw ? "(NSFW)" : "",
-            aiName === name ? "(*)" : "",
-          ].join(" ");
-          return `- ${name} ${tag}`;
-        })
-        .join("\n");
-      session.send(`${session.text(".agents-are")}\n${agents}`);
+      const agents = ctx.config.aiList.map(({ name, onlyNsfw }) => {
+        const tag = [
+          onlyNsfw ? "(NSFW)" : "",
+          aiName === name ? "(*)" : "",
+        ].join(" ");
+        return (
+          <p>
+            - {name} {tag}{" "}
+            <button id={"use-agent-" + name}>
+              {session.text(".select", [name])}
+            </button>
+          </p>
+        );
+      });
+      return (
+        <>
+          <p>{session.text(".agents-are")}</p>
+          {agents}
+        </>
+      );
+    });
+
+    ctx.on("interaction/button", async (session) => {
+      if (session.event.button?.id?.startsWith("use-agent-")) {
+        const model = session.event.button.id.replace(/^use-agent-/, "");
+        const ai = this.config.get(model);
+        if (!ai) {
+          return session.send(
+            session.text("commands.use-agent.messages.agent-not-found", [model])
+          );
+        }
+        if (!(await canUseAi(session, ai))) {
+          return session.send(
+            session.text("commands.use-agent.messages.agent-not-available", [
+              model,
+            ])
+          );
+        }
+        ctx.dbhelper.setData(session, "aiName", model);
+        session.send(
+          session.text("commands.use-agent.messages.agent-set", [model])
+        );
+      }
     });
 
     ctx
@@ -133,7 +166,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           );
         }
       );
-      return (await Promise.all(p)).join("\n");
+      return await Promise.all(p);
     });
 
     ctx.on("message", async (session) => {
