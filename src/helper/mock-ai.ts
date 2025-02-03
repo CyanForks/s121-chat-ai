@@ -1,7 +1,12 @@
 import { sleep } from "koishi";
 
 export async function* mockAI(): AsyncIterable<string> {
-  const mockResponse = `# H1
+  const mockResponse = `<think>你还差
+打发士大夫孙菲菲瑟夫瑟夫瑟夫
+
+额分色法阿塞飞瑟夫瑟夫ssef
+
+色粉色粉色粉色分f</think># H1
 
 ## H2
 

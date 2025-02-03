@@ -7,6 +7,7 @@ import { AIConfig, ChatAiData } from "./type";
 import { canUseAi } from "./helper/can-use-ai";
 import { isCallMyself } from "./helper/is-call-myself";
 import { genAsync, genStream } from "./helper/ai";
+import { transformMd } from "./helper/transform-md";
 
 export class ChatAIProvider extends DataService<ChatAiData[]> {
   mutexAi = new Mutex();
@@ -27,19 +28,21 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       session.content = prompt;
       if (!session.discord) {
         const res = await genAsync(ctx, session);
-        await session.send(res);
+        await session.send(transformMd(res));
         return;
       }
       const stream = genStream(ctx, session);
       let res = (await stream.next()).value;
       if (!res) return session.text("agent-not-responding");
-      const [id] = await session.send(res);
+      const [id] = await session.send(transformMd(res));
       const mutex = new Mutex();
       for await (const chunk of stream) {
         res += chunk;
         if (!mutex.isLocked()) {
           mutex.runExclusive(() =>
-            session.bot.editMessage(session.channelId, id, res as string)
+            session.discord.editMessage(session.channelId, id, {
+              content: transformMd(res as string),
+            })
           );
         }
       }
@@ -47,7 +50,9 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       let isSuccess = false;
       for (let i = 1; i < 10; i++) {
         try {
-          await session.bot.editMessage(session.channelId, id, res);
+          await session.discord.editMessage(session.channelId, id, {
+            content: transformMd(res as string),
+          });
           isSuccess = true;
           break;
         } catch (e) {
@@ -65,14 +70,18 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
     });
 
     ctx.command("chat-ai/show-context").action(async ({ session }) => {
-      return (
-        <>
-          {session.text(".context-is")}
-          <code-block language="json">
-            {JSON.stringify(await ctx.dbhelper.getContext(session), null, 2)}
-          </code-block>
-        </>
-      );
+      try {
+        await session.send(
+          <>
+            {session.text(".context-is")}
+            <code-block language="json">
+              {JSON.stringify(await ctx.dbhelper.getContext(session), null, 2)}
+            </code-block>
+          </>
+        );
+      } catch (e) {
+        console.error(e);
+      }
     });
 
     ctx.command("chat-ai/clear-context").action(async ({ session }) => {
@@ -171,7 +180,8 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
 
     ctx.on("message", async (session) => {
       if (!(await isCallMyself(ctx, session))) return;
-      if (!session.discord) return session.send(await genAsync(ctx, session));
+      if (!session.discord)
+        return session.send(transformMd(await genAsync(ctx, session)));
       const [id] = await session.send(
         <>
           <quote
@@ -196,7 +206,9 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
         res += chunk;
         if (!mutex.isLocked()) {
           mutex.runExclusive(() =>
-            session.bot.editMessage(session.channelId, id, res)
+            session.discord.editMessage(session.channelId, id, {
+              content: transformMd(res),
+            })
           );
         }
       }
@@ -204,7 +216,9 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       let isSuccess = false;
       for (let i = 1; i < 10; i++) {
         try {
-          await session.bot.editMessage(session.channelId, id, res);
+          await session.discord.editMessage(session.channelId, id, {
+            content: transformMd(res),
+          });
           isSuccess = true;
           break;
         } catch (e) {
