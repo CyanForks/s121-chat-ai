@@ -25,4 +25,8 @@ commands:
     messages:
       agent-set: "The agent used by the current channel has been set to: {0}"
       agent-not-found: Agents do not exist {0}
+      agent-not-available: This channel agent {0} is unavailable
 loading: share121's robot is responding...
+agent-not-responding: The agent is not responding, please try again later
+prompt-too-long: The prompt word is too long, please shorten it to {0} characters
+private-chat: Private chat

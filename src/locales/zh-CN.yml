@@ -25,4 +25,8 @@ commands:
     messages:
       agent-set: 当前频道使用的智能体已设置为：{0}
       agent-not-found: 智能体 {0} 不存在
+      agent-not-available: 此频道智能体 {0} 不可用
 loading: share121 的机器人正在响应……
+agent-not-responding: 智能体未响应，请稍后再试
+prompt-too-long: 提示词太长了，请缩短到 {0} 个字符以内
+private-chat: 私聊

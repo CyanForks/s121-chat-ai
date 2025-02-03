@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import type { PromptItem } from "../src/chat-ai-provider";
+import type { PromptItem } from "../src/type";
 import { fromAsyncCodeToHtml } from "@shikijs/markdown-it/async";
 import MarkdownItAsync from "markdown-it-async";
 import { codeToHtml } from "shiki";
