@@ -56,8 +56,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       const config = ctx.config.aiList.find(({ name }) => name === aiName);
       if (!config)
         return session.send(session.text(".agent-not-found", [aiName]));
-      const maxRetries =
-        config.maxRetries === -1 ? Infinity : config.maxRetries;
+      const maxRetries = config.maxRetries === 0 ? Infinity : config.maxRetries;
       for (let i = 1; i <= maxRetries; i++) {
         try {
           await session.discord.editMessage(session.channelId, id, {
@@ -232,8 +231,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
       const config = ctx.config.aiList.find(({ name }) => name === aiName);
       if (!config)
         return session.send(session.text(".agent-not-found", [aiName]));
-      const maxRetries =
-        config.maxRetries === -1 ? Infinity : config.maxRetries;
+      const maxRetries = config.maxRetries === 0 ? Infinity : config.maxRetries;
       for (let i = 1; i <= maxRetries; i++) {
         try {
           await session.discord.editMessage(session.channelId, id, {

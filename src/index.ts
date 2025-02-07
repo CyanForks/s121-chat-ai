@@ -53,9 +53,9 @@ export const Config: Schema<Config> = Schema.object({
           "截断后的长度，当上下文长度超过最大长度时，截断到这个长度，可以有效增加缓存命中率"
         ),
       maxRetries: Schema.number()
-        .min(-1)
+        .min(0)
         .default(10)
-        .description("发送消息时的最大重试次数，设为 -1 表示无限重试"),
+        .description("发送消息时的最大重试次数，设为 0 表示无限重试"),
       systemPrompt: Schema.array(
         Schema.object({
           role: Schema.union([
