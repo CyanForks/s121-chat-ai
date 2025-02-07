@@ -19,6 +19,7 @@ export interface AIConfig {
   onlyNsfw: boolean;
   maxContextSize?: number;
   fitContextSize?: number;
+  maxRetries: number;
   systemPrompt: PromptItem[];
   isMock: boolean;
   maxPromptLength?: number;

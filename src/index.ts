@@ -52,6 +52,10 @@ export const Config: Schema<Config> = Schema.object({
         .description(
           "截断后的长度，当上下文长度超过最大长度时，截断到这个长度，可以有效增加缓存命中率"
         ),
+      maxRetries: Schema.number()
+        .min(-1)
+        .default(10)
+        .description("发送消息时的最大重试次数，设为 -1 表示无限重试"),
       systemPrompt: Schema.array(
         Schema.object({
           role: Schema.union([
@@ -152,6 +156,7 @@ export const Config: Schema<Config> = Schema.object({
       onlyNsfw: false,
       fitContextSize: 5,
       maxTokens: 100,
+      maxRetries: 10,
       balanceUrl: "https://api.deepseek.com/user/balance",
       balanceToken: undefined,
       systemPrompt: [
@@ -189,6 +194,7 @@ export const Config: Schema<Config> = Schema.object({
       maxContextSize: 10,
       fitContextSize: 5,
       maxTokens: 100,
+      maxRetries: 10,
       balanceUrl: "https://api.deepseek.com/user/balance",
       balanceToken: undefined,
       systemPrompt: [
