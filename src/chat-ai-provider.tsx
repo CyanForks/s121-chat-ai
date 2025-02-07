@@ -66,7 +66,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           break;
         } catch (e) {
           console.error(e);
-          await sleep(500 * i);
+          await sleep(Math.min(100 * i, 5000));
         }
       }
       if (!isSuccess) {
@@ -241,7 +241,7 @@ export class ChatAIProvider extends DataService<ChatAiData[]> {
           break;
         } catch (e) {
           console.error(e);
-          await sleep(500 * i);
+          await sleep(Math.min(100 * i, 5000));
         }
       }
       if (!isSuccess) {
