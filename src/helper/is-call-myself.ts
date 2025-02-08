@@ -9,9 +9,12 @@ export async function isCallMyself(ctx: Context, session: Session) {
     ctx.config.defaultAi
   );
   const availableAi = ctx.config.aiList.filter(
-    ({ canWakeUpByName, name }) =>
-      canWakeUpByName &&
-      session.content.toLocaleLowerCase().includes(name.toLocaleLowerCase())
+    ({ canWakeUpByName, name, keywords }) =>
+      keywords.some((e) =>
+        session.content.toLocaleLowerCase().includes(e.toLocaleLowerCase())
+      ) ||
+      (canWakeUpByName &&
+        session.content.toLocaleLowerCase().includes(name.toLocaleLowerCase()))
   );
   if (availableAi.length === 0) {
     if (!session.guildId) return true;

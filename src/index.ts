@@ -42,6 +42,9 @@ export const Config: Schema<Config> = Schema.object({
       onlyNsfw: Schema.boolean()
         .default(false)
         .description("是否仅 NSFW 频道可用"),
+      keywords: Schema.array(Schema.string().required().pattern(/\S/))
+        .description("定义可以触发智能体的关键词，不区分大小写")
+        .default([]),
       maxContextSize: Schema.number()
         .min(0)
         .default(20)
@@ -154,6 +157,7 @@ export const Config: Schema<Config> = Schema.object({
       baseURL: "https://api.deepseek.com",
       maxContextSize: 10,
       onlyNsfw: false,
+      keywords: [],
       fitContextSize: 5,
       maxTokens: 100,
       maxRetries: 10,
@@ -192,6 +196,7 @@ export const Config: Schema<Config> = Schema.object({
       baseURL: "https://api.deepseek.com",
       onlyNsfw: false,
       maxContextSize: 10,
+      keywords: [],
       fitContextSize: 5,
       maxTokens: 100,
       maxRetries: 10,

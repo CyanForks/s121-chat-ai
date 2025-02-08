@@ -20,6 +20,7 @@ export interface AIConfig {
   maxContextSize?: number;
   fitContextSize?: number;
   maxRetries: number;
+  keywords: string[];
   systemPrompt: PromptItem[];
   isMock: boolean;
   maxPromptLength?: number;
